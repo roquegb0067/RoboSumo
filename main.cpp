@@ -28,13 +28,7 @@ void loop() {
   busca(adversarioYN);
   ultrasomVal();
   atividadeOponente(); // Chamando a função de estratégia
-}
-
-void pararMotores() {
-  analogWrite(MOTOR_A1, 0);
-  analogWrite(MOTOR_A2, 0);
-  analogWrite(MOTOR_B1, 0);
-  analogWrite(MOTOR_B2, 0);
+  linhaArena();
 }
 
 void busca(bool adversario) {
@@ -61,13 +55,6 @@ void busca(bool adversario) {
   } else {
     atacar();
   }
-}
-
-void atacar() {
-  analogWrite(MOTOR_A1, 255);
-  analogWrite(MOTOR_A2, 0);
-  analogWrite(MOTOR_B1, 255);
-  analogWrite(MOTOR_B2, 0);
 }
 
 float ultrasomVal() {
@@ -110,26 +97,22 @@ void Berserker(float distancia){
     }
 }
 
-void andar(int vel){
-  analogWrite(MOTOR_A1, vel);
-  analogWrite(MOTOR_A2, 0);
-  analogWrite(MOTOR_B1, vel);
-  analogWrite(MOTOR_B2, 0);
-}
-
 // Função de armadilha: Detecta se chegou perto e agora está recuando
 void atividadeOponente(){
   float distanciaAtual = ultrasomValLeituraApenas(); // Função auxiliar para pegar a distância limpa
   
-  // Se o inimigo estava muito perto (ex: menos de 15cm) e agora a distância começou a aumentar (ele está voltando/recuando)
+  // Se o inimigo estava muito perto voltando/recuando
   if (distanciaAtual < 15) {
     fugaInimigo = true; // Marcamos que ele esteve colado
   }
 
-  // Se ele esteve perto e a distância agora subiu (foi para mais de 20cm, por exemplo), dá o bote!
+  //Se ele esteve perto e a distância agora subiu
   if (fugaInimigo == true && distanciaAtual > 20 && distanciaAtual > distanciaAnterior) {
     atacar();
-    delay(500); // Dá um gás no ataque
+    /*
+    #####################################
+    */
+    delay(300); // Dá um gás no ataque
     fugaInimigo = false; // Reseta a armadilha
   }
 
@@ -146,4 +129,61 @@ float ultrasomValLeituraApenas() {
   long duracao = pulseIn(pinoEcho, HIGH, 30000); // Timeout para travar menos
   if (duracao == 0) return 50; // Se não achar nada, retorna longe
   return duracao * 0.034 / 2;
+}
+// leitura linha final da arena
+void linhaArena(){
+  if (sensorTras == true || sensorFrente == true) {
+    pararMotores();
+    if (sensorTras == true) {
+      andar(200);
+      delay(200);
+    }
+    if (sensorFrente == true) {
+      irParaTras(200);
+    }
+  }
+}
+/*
+###################################
+FUNÇÕES DE CONTROLE DOS MOTORES E VELOCIDADES
+*/
+void irParaTras(int vel){
+  analogWrite(MOTOR_A1, 0);
+  analogWrite(MOTOR_A2, vel);
+  analogWrite(MOTOR_B1, 0);
+  analogWrite(MOTOR_B2, vel);
+}
+void pararMotores() {
+  analogWrite(MOTOR_A1, 0);
+  analogWrite(MOTOR_A2, 0);
+  analogWrite(MOTOR_B1, 0);
+  analogWrite(MOTOR_B2, 0);
+}
+void andar(int vel){
+  analogWrite(MOTOR_A1, vel);
+  analogWrite(MOTOR_A2, 0);
+  analogWrite(MOTOR_B1, vel);
+  analogWrite(MOTOR_B2, 0);
+}
+void atacar() {
+  analogWrite(MOTOR_A1, 255);
+  analogWrite(MOTOR_A2, 0);
+  analogWrite(MOTOR_B1, 255);
+  analogWrite(MOTOR_B2, 0);
+}
+void fugir(){
+  if (sensorFrente && sensorFrente2 == true
+  ) {
+    giro(0, 255, 255, 0);
+  }
+  if (sensorTras && sensorTras2 == true) {
+    giro(255, 0, 0, 255);
+  }
+  void giro(int girarA1, int girarA2, int girarB1, int girarB2){
+    analogWrite(MOTOR_A1, girarA1);
+    analogWrite(MOTOR_A2, girarA2);
+    analogWrite(MOTOR_B1, girarB1);
+    analogWrite(MOTOR_B2, girarB2);
+    delayMicroseconds(100);
+  }
 }
